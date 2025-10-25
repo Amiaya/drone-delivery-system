@@ -1,0 +1,61 @@
+{
+  "name": "drone-delivery-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./dist",
+    "start:dev": "nodemon ./dist",
+    "watch": "tsc --watch -p ./tsconfig-build.json",
+    "build": "tsc -p ./tsconfig-build.json",
+    "test": "jest --runInBand --detectOpenHandles --forceExit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amiaya/drone-delivery-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Amiaya/drone-delivery-system/issues"
+  },
+  "homepage": "https://github.com/Amiaya/drone-delivery-system#readme",
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^4.6.3",
+    "@types/pg": "^8.6.5",
+    "@types/prettyjson": "^0.0.30",
+    "@types/node": "^18.13.0",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/express-prometheus-middleware": "^1.2.3",
+    "@types/axios": "^0.14.0",
+    "@types/bunyan": "^1.8.8"
+  },
+  "dependencies": {
+    "pg": "8.7.3",
+    "postgrator": "5",
+    "prettyjson": "^1.2.5",
+    "reflect-metadata": "^0.1.13",
+    "response-time": "^2.3.2",
+    "nodemon": "^2.0.15",
+    "knex": "^2.4.0",
+    "module-alias": "^2.2.2",
+    "joi": "^17.7.0",
+    "http-status-codes": "^2.2.0",
+    "inversify": "^6.0.1",
+    "inversify-express-utils": "^6.4.3",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "express-prometheus-middleware": "^1.2.0",
+    "axios": "^1.6.0",
+    "bunyan": "^1.8.15",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0",
+    "helmet": "^5.0.2"
+  },
+  "_moduleAliases": {
+    "@app": "./dist"
+  }
+}
