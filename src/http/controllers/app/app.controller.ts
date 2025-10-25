@@ -8,7 +8,7 @@ import {
 
 import { Controller, GenericMessage } from "@app/internal/http";
 
-@controller("")
+@controller("/app")
 export class AppController extends Controller<GenericMessage> {
   @httpGet("/ping")
   async ping(@request() req: Request, @response() res: Response) {

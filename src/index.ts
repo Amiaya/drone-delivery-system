@@ -47,9 +47,11 @@ const start = async () => {
     const appServer = app.server.build();
     // start server
     const httpServer = http.createServer(appServer);
+    httpServer.listen(env.port);
     httpServer.on("listening", async () => {
       logger.info(`${env.app_name} listening on ${env.port}`);
       const routeInfo = getRouteInfo(container);
+
       console.log(
         prettyjson.render(
           { routes: routeInfo },
@@ -57,6 +59,7 @@ const start = async () => {
         )
       );
     });
+
     process.on("SIGTERM", async () => {
       logger.info("exiting aplication...");
 
