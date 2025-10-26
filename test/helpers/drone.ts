@@ -24,3 +24,13 @@ export async function createDrone(pg: Knex, dto?: Partial<Drone>) {
   );
   return account;
 }
+
+export async function fetchDrone(pg: Knex, id: string) {
+  const drone = await pg<Drone>("drones")
+    .where({
+      id
+    })
+    .first();
+
+  return drone;
+}

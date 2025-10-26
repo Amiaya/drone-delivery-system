@@ -19,7 +19,7 @@ import APP_TYPES from "@app/config/types";
 import { ApplicationError } from "@app/internal/errors";
 import { StatusCodes } from "http-status-codes";
 
-export type ControllerResponse = Drone | Drone[] | PaginatedResult<Drone>;
+type ControllerResponse = Drone | Drone[] | PaginatedResult<Drone>;
 
 @controller("/drones")
 export class DroneController extends Controller<ControllerResponse> {

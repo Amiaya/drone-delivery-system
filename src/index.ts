@@ -12,6 +12,8 @@ import INTERNAL_TYPES from "./internal/types";
 import { Knex } from "knex";
 import Logger from "bunyan";
 import { MedicationRepository } from "@app/medications";
+import { OrderMedicationRepository } from "@app/order-medications";
+import { OrderRepository } from "@app/orders";
 import { createPostgres } from "./config/postgres";
 import { getRouteInfo } from "inversify-express-utils";
 import http from "http";
@@ -53,6 +55,12 @@ const start = async () => {
     container
       .bind<MedicationRepository>(APP_TYPES.MedicationRepository)
       .to(MedicationRepository);
+    container
+      .bind<OrderRepository>(APP_TYPES.OrderRepository)
+      .to(OrderRepository);
+    container
+      .bind<OrderMedicationRepository>(APP_TYPES.OrderMedicationRepository)
+      .to(OrderMedicationRepository);
 
     const app = new App(container, logger, env, () => isHealthy(pg));
 

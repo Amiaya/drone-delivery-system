@@ -67,4 +67,10 @@ export class MedicationRepository extends Repository<Medication> {
 
     return db;
   }
+
+  async getByIds(ids: string[]) {
+    let db = await this.db().whereIn("id", ids);
+
+    return db;
+  }
 }

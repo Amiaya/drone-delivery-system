@@ -28,7 +28,7 @@ import { ApplicationError } from "@app/internal/errors";
 import { StatusCodes } from "http-status-codes";
 import { generateDatedShortCode } from "@app/internal/string";
 
-export type ControllerResponse =
+type ControllerResponse =
   | Medication
   | Medication[]
   | PaginatedResult<Medication>;

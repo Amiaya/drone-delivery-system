@@ -20,6 +20,8 @@
       "@app/jobs": ["jobs/"],
       "@app/drones": ["drones/"],
       "@app/medications": ["medications/"],
+      "@app/orders": ["orders/"],
+      "@app/order-medications": ["order-medications/"],
     },
     "typeRoots": ["./node_modules/@types", "typings"],
     "types": ["jest", "node"],

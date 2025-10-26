@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import { Medication } from "medications/medication.model";
+import { Medication } from "@app/medications";
 import { faker } from "@faker-js/faker";
 
 export function newMedication(dto?: Partial<Medication>) {

@@ -31,6 +31,27 @@ create table if not exists medications (
     deleted_at timestamp
 );
 
+create index idx_medication_code on medications (code);
+
+create table if not exists orders (
+    id uuid not null primary key default public.gen_random_uuid(),
+    drone_id uuid not null references drones(id) on delete cascade,
+    total_weight integer not null check (total_weight > 0),
+    status text not null default 'pending',
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now()
+);
+
+create table if not exists order_medications (
+    id uuid not null primary key default public.gen_random_uuid(),
+    order_id uuid not null references orders(id) on delete cascade,
+    quantity integer not null check (quantity > 0),
+    medication_id uuid not null references medications(id) on delete cascade,
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now(),
+    metadata jsonb
+);
+
 create unique index idx_medication_name_unique on medications (medication_name) where deleted_at is null;
 
 create trigger medication_updated_at before update

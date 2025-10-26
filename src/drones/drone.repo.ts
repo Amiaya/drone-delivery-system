@@ -2,6 +2,8 @@ import { Drone, DroneDTO, DroneQuery, DroneState } from "./drone.model";
 import { PaginatedResult, Repository } from "@app/internal/postgres";
 import { isEmpty, omit } from "lodash";
 
+import { Knex } from "knex";
+
 export class DroneRepository extends Repository<Drone> {
   private db = this.setup("drones");
 
@@ -38,11 +40,9 @@ export class DroneRepository extends Repository<Drone> {
     return await this.paginated(db.select("*"), query.limit, query.offset);
   }
 
-  async updateState(id: string, state: DroneState) {
-    const [drone] = await this.db()
-      .where("id", id)
-      .update({ state })
-      .returning("*");
+  async updateState(id: string, state: DroneState, trx?: Knex) {
+    const db = trx ? () => trx("drones") : this.db;
+    const [drone] = await db().where("id", id).update({ state }, "*");
     return drone;
   }
 
