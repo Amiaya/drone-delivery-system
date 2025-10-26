@@ -4,15 +4,19 @@ import "./http/controllers";
 
 import Environment, { EnvConfig, envSchema, setupEnv } from "./internal/env";
 
+import APP_TYPES from "./config/types";
 import { App } from "./app";
 import { Container } from "inversify";
+import { DroneRepository } from "@app/drones";
 import INTERNAL_TYPES from "./internal/types";
 import { Knex } from "knex";
 import Logger from "bunyan";
+import { MedicationRepository } from "@app/medications";
 import { createPostgres } from "./config/postgres";
 import { getRouteInfo } from "inversify-express-utils";
 import http from "http";
 import prettyjson from "prettyjson";
+import { seedDrones } from "./config/bootstrap";
 
 async function isHealthy(pg: Knex) {
   try {
@@ -42,6 +46,14 @@ const start = async () => {
     container.bind<Knex>(INTERNAL_TYPES.KnexDB).toConstantValue(pg);
     logger.info("successfully connected to postgres and has run migration");
 
+    // setup app bindings
+    container
+      .bind<DroneRepository>(APP_TYPES.DroneRepository)
+      .to(DroneRepository);
+    container
+      .bind<MedicationRepository>(APP_TYPES.MedicationRepository)
+      .to(MedicationRepository);
+
     const app = new App(container, logger, env, () => isHealthy(pg));
 
     const appServer = app.server.build();
@@ -50,8 +62,8 @@ const start = async () => {
     httpServer.listen(env.port);
     httpServer.on("listening", async () => {
       logger.info(`${env.app_name} listening on ${env.port}`);
+      await seedDrones(container);
       const routeInfo = getRouteInfo(container);
-
       console.log(
         prettyjson.render(
           { routes: routeInfo },

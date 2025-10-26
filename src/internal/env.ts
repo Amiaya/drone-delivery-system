@@ -58,7 +58,8 @@ export const envSchema = {
   postgres_db: joi.string().required(),
   postgres_user: joi.string().required(),
   postgres_password: joi.string().required(),
-  postgres_schema: joi.string().required()
+  postgres_schema: joi.string().required(),
+  cloudinary_url: joi.string().uri({ scheme: "cloudinary" }).trim().required()
 };
 
 /**
@@ -113,6 +114,10 @@ export interface EnvConfig {
    * Postgres schema
    */
   postgres_schema: string;
+  /*
+   * Cloudinary URL
+   */
+  cloudinary_url: string;
 }
 
 export default class Environment {

@@ -17,10 +17,12 @@
       "@app/config/*": ["config/*"],
       "@app/http/*": ["http/*"],
       "@app/internal/*": ["internal/*"],
-      "@app/jobs": ["jobs/"]
+      "@app/jobs": ["jobs/"],
+      "@app/drones": ["drones/"],
+      "@app/medications": ["medications/"],
     },
     "typeRoots": ["./node_modules/@types", "typings"],
-    "types": ["node"],
+    "types": ["jest", "node"],
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
