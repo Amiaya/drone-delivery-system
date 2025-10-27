@@ -59,7 +59,13 @@ export const envSchema = {
   postgres_user: joi.string().required(),
   postgres_password: joi.string().required(),
   postgres_schema: joi.string().required(),
-  cloudinary_url: joi.string().uri({ scheme: "cloudinary" }).trim().required()
+  cloudinary_url: joi.string().uri({ scheme: "cloudinary" }).trim().required(),
+  redis_url: joi.string().uri({ scheme: "redis" }).trim().required(),
+  redis_password: joi.when("node_env", {
+    is: joi.valid("production", "staging"),
+    then: trimmedString.required(),
+    otherwise: trimmedString.optional()
+  })
 };
 
 /**
@@ -118,6 +124,14 @@ export interface EnvConfig {
    * Cloudinary URL
    */
   cloudinary_url: string;
+  /**
+   * Redis URL
+   */
+  redis_url: string;
+  /**
+   * Redis passord
+   */
+  redis_password: string;
 }
 
 export default class Environment {

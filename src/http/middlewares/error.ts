@@ -22,6 +22,6 @@ export function errors(logger: Logger) {
       });
     }
 
-    logger.error({ err, res, req });
+    logger.info({ err, req, res });
   };
 }

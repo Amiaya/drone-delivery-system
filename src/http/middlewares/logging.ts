@@ -26,7 +26,7 @@ export function captureBody(_req: Request, res: Response, next: NextFunction) {
  */
 export function logRequest(logger: Logger) {
   return function (req: Request, _res: Response, next: NextFunction) {
-    logger.info({ req });
+    logger.info(req);
     next();
   };
 }

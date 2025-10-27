@@ -4,6 +4,7 @@ import "../helpers/multer";
 import "../../src/http/controllers/medications/medication.controller";
 
 import Environment, { EnvConfig, envSchema, setupEnv } from "@app/internal/env";
+import { Logger, defaultSerializers } from "@risemaxi/octonet";
 import { Medication, MedicationRepository } from "@app/medications";
 import chai, { expect } from "chai";
 import { createMedication, newMedication } from "../helpers/medication";
@@ -15,7 +16,6 @@ import { Application } from "express";
 import { Container } from "inversify";
 import INTERNAL_TYPES from "@app/internal/types";
 import { Knex } from "knex";
-import Logger from "bunyan";
 import { StatusCodes } from "http-status-codes";
 import chaiAsPromised from "chai-as-promised";
 import { createPostgres } from "@app/config/postgres";
@@ -32,11 +32,13 @@ let env: EnvConfig;
 let pg: Knex;
 
 beforeAll(async () => {
+  console.log("xxxx");
   const envvars = setupEnv(envSchema);
   const environment = new Environment(envvars);
   env = environment.env();
   const logger = new Logger({
-    name: env.app_name
+    name: env.app_name,
+    serializers: defaultSerializers()
   });
   container = new Container();
 

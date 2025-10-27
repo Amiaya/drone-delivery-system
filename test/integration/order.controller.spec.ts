@@ -2,6 +2,7 @@ import "reflect-metadata";
 import "../../src/http/controllers/orders/order.controller";
 
 import Environment, { EnvConfig, envSchema, setupEnv } from "@app/internal/env";
+import { Logger, defaultSerializers } from "@risemaxi/octonet";
 import { Order, OrderRepository } from "@app/orders";
 import chai, { expect } from "chai";
 import { createDrone, fetchDrone } from "../helpers/drone";
@@ -18,7 +19,6 @@ import { Container } from "inversify";
 import { DroneRepository } from "@app/drones";
 import INTERNAL_TYPES from "@app/internal/types";
 import { Knex } from "knex";
-import Logger from "bunyan";
 import { MedicationRepository } from "@app/medications";
 import { OrderMedicationRepository } from "@app/order-medications";
 import { StatusCodes } from "http-status-codes";
@@ -43,7 +43,8 @@ beforeAll(async () => {
   const environment = new Environment(envvars);
   env = environment.env();
   const logger = new Logger({
-    name: env.app_name
+    name: env.app_name,
+    serializers: defaultSerializers()
   });
   container = new Container();
 

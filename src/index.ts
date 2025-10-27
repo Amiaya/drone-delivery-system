@@ -1,6 +1,7 @@
 import "module-alias/register";
 import "reflect-metadata";
 import "./http/controllers";
+import "./jobs";
 
 import Environment, { EnvConfig, envSchema, setupEnv } from "./internal/env";
 
