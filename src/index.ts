@@ -7,7 +7,8 @@ import Environment, { EnvConfig, envSchema, setupEnv } from "./internal/env";
 import APP_TYPES from "./config/types";
 import { App } from "./app";
 import { Container } from "inversify";
-import { DroneRepository } from "@app/drones";
+import { DroneCronJob } from "./jobs/drone.cron";
+import { DroneRepository } from "./drones";
 import INTERNAL_TYPES from "./internal/types";
 import { Knex } from "knex";
 import Logger from "bunyan";
@@ -19,6 +20,8 @@ import { getRouteInfo } from "inversify-express-utils";
 import http from "http";
 import prettyjson from "prettyjson";
 import { seedDrones } from "./config/bootstrap";
+
+("@app/jobs/drone.cronjob");
 
 async function isHealthy(pg: Knex) {
   try {
@@ -39,6 +42,7 @@ const start = async () => {
 
   try {
     const container = new Container();
+    container.bind<DroneCronJob>(APP_TYPES.DroneCronJob).to(DroneCronJob);
 
     container.bind<Logger>(INTERNAL_TYPES.Logger).toConstantValue(logger);
     container.bind<EnvConfig>(INTERNAL_TYPES.Env).toConstantValue(env);
@@ -61,6 +65,11 @@ const start = async () => {
     container
       .bind<OrderMedicationRepository>(APP_TYPES.OrderMedicationRepository)
       .to(OrderMedicationRepository);
+
+    const cronJobs = container.get<DroneCronJob>(APP_TYPES.DroneCronJob);
+
+    cronJobs.start(); // start cron jobs
+    logger.info("🚀 Drone Delivery System started!");
 
     const app = new App(container, logger, env, () => isHealthy(pg));
 

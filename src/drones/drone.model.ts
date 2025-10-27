@@ -33,4 +33,5 @@ export interface DroneQuery extends PaginatedQuery, OrderByQuery {
   serial_number: string;
   model: DroneModel;
   state: DroneState;
+  is_available?: boolean;
 }

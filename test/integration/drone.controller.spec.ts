@@ -3,8 +3,9 @@ import "../../src/http/controllers/drones/drone.controller";
 
 import { Drone, DroneRepository } from "@app/drones";
 import Environment, { EnvConfig, envSchema, setupEnv } from "@app/internal/env";
+import { Order, OrderRepository } from "@app/orders";
 import chai, { expect } from "chai";
-import { getError, getSuccess } from "../helper";
+import { getError, getSuccess, repeat } from "../helper";
 
 import APP_TYPES from "@app/config/types";
 import { App } from "../../src/app";
@@ -13,9 +14,14 @@ import { Container } from "inversify";
 import INTERNAL_TYPES from "@app/internal/types";
 import { Knex } from "knex";
 import Logger from "bunyan";
+import { MedicationRepository } from "@app/medications";
+import { OrderMedicationRepository } from "@app/order-medications";
 import { StatusCodes } from "http-status-codes";
 import chaiAsPromised from "chai-as-promised";
 import { createDrone } from "../helpers/drone";
+import { createMedication } from "../helpers/medication";
+import { createOrder } from "../helpers/order";
+import { createOrderMedication } from "../helpers/order-medication";
 import { createPostgres } from "@app/config/postgres";
 import { faker } from "@faker-js/faker";
 import request from "supertest";
@@ -48,6 +54,15 @@ beforeAll(async () => {
   container
     .bind<DroneRepository>(APP_TYPES.DroneRepository)
     .to(DroneRepository);
+  container
+    .bind<OrderRepository>(APP_TYPES.OrderRepository)
+    .to(OrderRepository);
+  container
+    .bind<MedicationRepository>(APP_TYPES.MedicationRepository)
+    .to(MedicationRepository);
+  container
+    .bind<OrderMedicationRepository>(APP_TYPES.OrderMedicationRepository)
+    .to(OrderMedicationRepository);
 
   app = new App(container, logger, env).server.build();
 });
@@ -201,6 +216,55 @@ describe("DroneController#makeReady", () => {
       request(app).post(`${baseURL}/${faker.string.uuid()}/ready`)
     );
 
+    expect(errorMessage).to.eq("Drone not found");
+  });
+});
+
+describe("DroneController#getDetails", () => {
+  it("should fetch drone items if the drone is loaded", async () => {
+    const drone = await createDrone(pg, {
+      state: "loaded",
+      battery_capacity: 100,
+      weight_limit: 500
+    });
+
+    const medications = await repeat(2, async () => {
+      const code = `MED-${Math.floor(100000 + Math.random() * 900000)}`;
+      return await createMedication(pg, {
+        weight: faker.number.int({ min: 50, max: 100 }),
+        code
+      });
+    });
+
+    const order = await createOrder(pg, {
+      drone_id: drone.id,
+      status: "pending"
+    });
+
+    await repeat(2, async i => {
+      await createOrderMedication(pg, {
+        order_id: order.id,
+        medication_id: medications[i].id,
+        quantity: i + 1
+      });
+    });
+
+    const response = await getSuccess<Order>(
+      request(app).get(`${baseURL}/${drone.id}/details`)
+    );
+
+    expect(response.id).to.eq(order.id);
+
+    response.items.forEach(item => {
+      expect(item.order_id).to.eq(order.id);
+    });
+  });
+
+  it("should fail if order is not found", async () => {
+    const errorMessage = await getError(
+      StatusCodes.NOT_FOUND,
+      request(app).get(`${baseURL}/${faker.string.uuid()}/details`)
+    );
     expect(errorMessage).to.eq("Drone not found");
   });
 });

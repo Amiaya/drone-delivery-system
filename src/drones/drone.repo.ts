@@ -27,9 +27,16 @@ export class DroneRepository extends Repository<Drone> {
             "nopaginate",
             "order_by",
             "order",
-            "keyword"
+            "is_available"
           ])
         );
+
+    if (query.is_available !== undefined && query.is_available !== null) {
+      const state = query.is_available
+        ? ["idel"]
+        : ["loading", "loaded", "delivering", "delivered", "returning"];
+      db = db.whereIn("state", state);
+    }
 
     db = db.orderBy(query.order_by, query.order);
 
@@ -50,5 +57,37 @@ export class DroneRepository extends Repository<Drone> {
     let db = await this.db().where("id", id).first();
 
     return db;
+  }
+
+  async fetchAvailableDrones() {
+    let db = await this.db()
+      .whereNot("state", "idle")
+      .where("battery_capacity", ">", 0);
+
+    return db;
+  }
+
+  async fetchIdleDrones() {
+    let db = await this.db()
+      .where("state", "idle")
+      .where("battery_capacity", "<", 100);
+
+    return db;
+  }
+
+  async fetchDronesInDelivered(date: Date) {
+    let db = await this.db()
+      .where("state", "delivered")
+      .andWhere("updated_at", "<", date);
+
+    return db;
+  }
+
+  async updateBatteryCapacity(id: string, battery_capacity: number) {
+    const [drone] = await this.db()
+      .where("id", id)
+      .update({ battery_capacity }, "*");
+
+    return drone;
   }
 }
