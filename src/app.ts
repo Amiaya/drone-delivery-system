@@ -9,6 +9,7 @@ import Status from "http-status-codes";
 import cors from "cors";
 import helmet from "helmet";
 import responseTime from "response-time";
+import { setupSwagger } from "./internal/swagger.config";
 import { v4 } from "uuid";
 
 export class App {
@@ -46,6 +47,9 @@ export class App {
 
         next();
       });
+
+      // 👇 add Swagger docs setup here
+      setupSwagger(app);
     });
 
     /**

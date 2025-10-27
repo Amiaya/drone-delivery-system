@@ -1,5 +1,5 @@
 import { Model } from "@app/internal/postgres";
-import { OrderMedication } from "order-medications/order-medication.model";
+import { OrderMedication } from "@app/order-medications";
 
 export const ORDER_STATUS = <const>[
   "pending",

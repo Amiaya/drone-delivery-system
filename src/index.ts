@@ -79,9 +79,13 @@ const start = async () => {
     const appServer = app.server.build();
     // start server
     const httpServer = http.createServer(appServer);
+
     httpServer.listen(env.port);
     httpServer.on("listening", async () => {
       logger.log(`${env.app_name} listening on ${env.port}`);
+      logger.log(
+        `📘 Swagger Docs available at http://localhost:${env.port}/docs`
+      );
       await seedDrones(container);
       const routeInfo = getRouteInfo(container);
       console.log(
