@@ -37,9 +37,10 @@ Before running the project, ensure you have the following installed:
 
 - yarn
 
-### 🏭 Build
+### 🏭 Build and Start Application
 
 - yarn build
+- yarn start:dev
 
 ### 🧹 Testing
 
@@ -49,7 +50,7 @@ Before running the project, ensure you have the following installed:
 
 ### 📚 API Documentation
 
-- http://localhost:<PORT>/docs
+- http://localhost:${port}/docs
 
 ---
 
