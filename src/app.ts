@@ -4,7 +4,7 @@ import express, { Application } from "express";
 import { Container } from "inversify";
 import { EnvConfig } from "./internal/env";
 import { InversifyExpressServer } from "inversify-express-utils";
-import Logger from "bunyan";
+import { Logger } from "@risemaxi/octonet";
 import Status from "http-status-codes";
 import cors from "cors";
 import helmet from "helmet";

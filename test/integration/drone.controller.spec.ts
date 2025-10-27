@@ -3,6 +3,7 @@ import "../../src/http/controllers/drones/drone.controller";
 
 import { Drone, DroneRepository } from "@app/drones";
 import Environment, { EnvConfig, envSchema, setupEnv } from "@app/internal/env";
+import { Logger, defaultSerializers } from "@risemaxi/octonet";
 import chai, { expect } from "chai";
 import { getError, getSuccess } from "../helper";
 
@@ -12,7 +13,6 @@ import { Application } from "express";
 import { Container } from "inversify";
 import INTERNAL_TYPES from "@app/internal/types";
 import { Knex } from "knex";
-import Logger from "bunyan";
 import { StatusCodes } from "http-status-codes";
 import chaiAsPromised from "chai-as-promised";
 import { createDrone } from "../helpers/drone";
@@ -35,7 +35,8 @@ beforeAll(async () => {
   const environment = new Environment(envvars);
   env = environment.env();
   const logger = new Logger({
-    name: env.app_name
+    name: env.app_name,
+    serializers: defaultSerializers()
   });
   container = new Container();
 

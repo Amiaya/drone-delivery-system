@@ -51,4 +51,36 @@ export class DroneRepository extends Repository<Drone> {
 
     return db;
   }
+
+  async fetchAvailableDrones() {
+    let db = await this.db()
+      .whereNot("state", "idle")
+      .where("battery_capacity", ">", 0);
+
+    return db;
+  }
+
+  async fetchIdleDrones() {
+    let db = await this.db()
+      .where("state", "idle")
+      .where("battery_capacity", "<", 100);
+
+    return db;
+  }
+
+  async fetchDronesInDelivered(date: Date) {
+    let db = await this.db()
+      .where("state", "delivered")
+      .andWhere("updated_at", "<", date);
+
+    return db;
+  }
+
+  async updateBatteryCapacity(id: string, battery_capacity: number) {
+    const [drone] = await this.db()
+      .where("id", id)
+      .update({ battery_capacity }, "*");
+
+    return drone;
+  }
 }

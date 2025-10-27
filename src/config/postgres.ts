@@ -1,5 +1,5 @@
 import { EnvConfig } from "@app/internal/env";
-import Logger from "bunyan";
+import { Logger } from "@risemaxi/octonet";
 import Postgrator from "postgrator";
 import { excludeProperties } from "@app/internal/postgres";
 import knex from "knex";

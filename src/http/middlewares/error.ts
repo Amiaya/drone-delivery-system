@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { ApplicationError } from "@app/internal/errors";
-import Logger from "bunyan";
+import { Logger } from "@risemaxi/octonet";
 import Status from "http-status-codes";
 
 /**
@@ -22,6 +22,6 @@ export function errors(logger: Logger) {
       });
     }
 
-    logger.error({ err, res, req });
+    logger.httpError(err, req, res);
   };
 }
