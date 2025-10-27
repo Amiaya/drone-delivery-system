@@ -1,4 +1,4 @@
-import { Controller } from "@app/internal/http";
+import { Controller, GenericMessage } from "@app/internal/http";
 import { Request, Response } from "express";
 
 import { Drone, DroneQuery, DroneRepository } from "@app/drones";
@@ -18,12 +18,22 @@ import { inject } from "inversify";
 import APP_TYPES from "@app/config/types";
 import { ApplicationError } from "@app/internal/errors";
 import { StatusCodes } from "http-status-codes";
+import { OrderMedicationRepository } from "@app/order-medications";
+import { Order, OrderRepository } from "@app/orders";
 
-type ControllerResponse = Drone | Drone[] | PaginatedResult<Drone>;
+type ControllerResponse =
+  | Drone
+  | Drone[]
+  | PaginatedResult<Drone>
+  | GenericMessage
+  | Order;
 
 @controller("/drones")
 export class DroneController extends Controller<ControllerResponse> {
   @inject(APP_TYPES.DroneRepository) private repo: DroneRepository;
+  @inject(APP_TYPES.OrderMedicationRepository)
+  private orderMedRepo: OrderMedicationRepository;
+  @inject(APP_TYPES.OrderRepository) private orders: OrderRepository;
 
   @httpGet("/", autoValidate(isDroneQuery, "query"))
   async list(
@@ -72,6 +82,34 @@ export class DroneController extends Controller<ControllerResponse> {
     const updatedDrone = await this.repo.updateState(id, "delivering");
 
     this.send(req, res, updatedDrone);
+  }
+
+  @httpGet("/:id/details", autoValidate(isEntityId, "params"))
+  async getDetails(
+    @request() req: Request,
+    @response() res: Response,
+    @requestParam("id") id: string
+  ) {
+    const drone = await this.repo.getById(id);
+
+    if (!drone) {
+      throw new ApplicationError(StatusCodes.NOT_FOUND, "Drone not found");
+    }
+
+    const order = await this.orders.fetchByDroneID(drone.id, "pending");
+
+    if (!order) {
+      return this.send(req, res, {
+        message: "This Drone does not currently have any item loaded"
+      });
+    }
+
+    const orderMeds = await this.orderMedRepo.getByOrderId(id);
+
+    this.send(req, res, {
+      ...order,
+      items: orderMeds
+    });
   }
 
   @httpPost("/:id/:action", autoValidate(isDroneParams, "params"))

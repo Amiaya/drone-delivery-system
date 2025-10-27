@@ -32,6 +32,7 @@ let env: EnvConfig;
 let pg: Knex;
 
 beforeAll(async () => {
+  console.log("xxxx");
   const envvars = setupEnv(envSchema);
   const environment = new Environment(envvars);
   env = environment.env();

@@ -26,6 +26,16 @@ export class OrderRepository extends Repository<Order> {
     return db;
   }
 
+  async fetchByDroneID(droneID: string, status?: OrderStatus) {
+    let db = this.db().where("drone_id", droneID);
+
+    if (status) {
+      db = db.andWhere("status", status);
+    }
+
+    return await db.first();
+  }
+
   async updateOrderStatus(id: string, status: OrderStatus) {
     const [order] = await this.db().where("id", id).update({ status }, "*");
     return order;

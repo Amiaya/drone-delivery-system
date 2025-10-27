@@ -9,7 +9,12 @@ export const isDroneQuery = isPaginationQuery.concat(isOrderByQuery).keys({
   state: joi
     .string()
     .valid(...DRONE_STATE)
-    .optional()
+    .optional(),
+  is_available: joi.boolean().when("state", {
+    is: joi.exist(),
+    then: joi.forbidden(),
+    otherwise: joi.boolean().optional()
+  })
 });
 
 export const isDroneParams = joi.object({

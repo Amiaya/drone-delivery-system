@@ -27,9 +27,16 @@ export class DroneRepository extends Repository<Drone> {
             "nopaginate",
             "order_by",
             "order",
-            "keyword"
+            "is_available"
           ])
         );
+
+    if (query.is_available !== undefined && query.is_available !== null) {
+      const state = query.is_available
+        ? ["idel"]
+        : ["loading", "loaded", "delivering", "delivered", "returning"];
+      db = db.whereIn("state", state);
+    }
 
     db = db.orderBy(query.order_by, query.order);
 

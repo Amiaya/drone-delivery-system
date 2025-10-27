@@ -6,7 +6,7 @@ info:
     REST API for managing drones, medications, and orders in a drone delivery system.
 
 servers:
-  - url: http://localhost:3000/api
+  - url: http://localhost:3005/api/v1
     description: Local development server
 
 tags:
@@ -20,80 +20,174 @@ tags:
 paths:
   /drones:
     get:
-      summary: Retrieve all drones
-      tags: [Drones]
-      responses:
-        '200':
-          description: A list of drones
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Drone'
-
-    post:
-      summary: Register a new drone
-      tags: [Drones]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DroneDTO'
-      responses:
-        '201':
-          description: Drone created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Drone'
-        '400':
-          description: Validation error
-
-  /drones/{id}:
-    get:
-      summary: Retrieve a drone by ID
-      tags: [Drones]
+      summary: Retrieve list of drones (supports filtering & pagination)
+      tags:
+        - Drones
       parameters:
-        - in: path
-          name: id
-          required: true
+        - in: query
+          name: serial_number
           schema:
             type: string
-      responses:
-        '200':
-          description: Drone details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Drone'
-        '404':
-          description: Drone not found
-
-  /drones/{id}/battery:
-    get:
-      summary: Retrieve drone battery level
-      tags: [Drones]
-      parameters:
-        - in: path
-          name: id
-          required: true
+          description: Filter by serial number (exact match)
+        - in: query
+          name: model
           schema:
             type: string
+            enum:
+              ["lightweight", "middleweight", "cruiserweight", "heavyweight"]
+          description: Filter by drone model
+        - in: query
+          name: state
+          schema:
+            type: string
+            enum:
+              [
+                "idle",
+                "loading",
+                "loaded",
+                "delivering",
+                "delivered",
+                "returning",
+              ]
+          description: Filter by drone state
+        - in: query
+          name: is_available
+          schema:
+            type: boolean
+          description: Filter only available drones
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 25
+          description: Pagination limit
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+        - in: query
+          name: order_by
+          schema:
+            type: string
+            example: created_at
+          description: Field to order by
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: ["asc", "desc"]
+            default: desc
+          description: Order direction
       responses:
-        '200':
-          description: Battery level retrieved successfully
+        "200":
+          description: A paginated list of drones
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  battery_capacity:
-                    type: integer
-                    example: 80
-        '404':
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Drone"
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      limit:
+                        type: integer
+                        example: 25
+                      offset:
+                        type: integer
+                        example: 0
+        "400":
+          description: Invalid query parameters
+
+  /drones/{id}:
+    get:
+      summary: Retrieve a drone by ID
+      tags:
+        - Drones
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Drone UUID
+      responses:
+        "200":
+          description: Drone details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drone"
+        "404":
           description: Drone not found
+
+  /drones/{id}/ready:
+    post:
+      summary: Mark a loaded drone as ready for delivery (transition to 'delivering')
+      tags:
+        - Drones
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Drone UUID
+      responses:
+        "200":
+          description: Drone state updated to 'delivering'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drone"
+        "404":
+          description: Drone not found
+        "422":
+          description: Drone not in 'loaded' state (unprocessable state transition)
+
+  /drones/{id}/{action}:
+    post:
+      summary: Load or unload a drone (allowed actions load, unload)
+      tags:
+        - Drones
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Drone UUID
+        - in: path
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: ["load", "unload"]
+          description: Action to perform on the drone
+      responses:
+        "200":
+          description: Drone state updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Drone"
+        "400":
+          description: Bad request (e.g., battery too low to load)
+        "404":
+          description: Drone not found
+        "422":
+          description: Invalid state transition (e.g., unloading a drone that's not in loading state)
 
   /medications:
     get:
@@ -109,14 +203,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List of medications
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Medication'
+                  $ref: "#/components/schemas/Medication"
 
     post:
       summary: Create a new medication
@@ -126,15 +220,15 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/MedicationDTO'
+              $ref: "#/components/schemas/MedicationDTO"
       responses:
-        '201':
+        "201":
           description: Medication created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Medication'
-        '409':
+                $ref: "#/components/schemas/Medication"
+        "409":
           description: Duplicate medication error
 
   /medications/{id}:
@@ -148,13 +242,13 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Medication found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Medication'
-        '404':
+                $ref: "#/components/schemas/Medication"
+        "404":
           description: Medication not found
 
   /orders:
@@ -166,17 +260,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MedicationOrder'
+              $ref: "#/components/schemas/MedicationOrder"
       responses:
-        '201':
+        "201":
           description: Order created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
-        '400':
+                $ref: "#/components/schemas/Order"
+        "400":
           description: Drone not in loading state or weight limit exceeded
-        '404':
+        "404":
           description: Drone or medication not found
 
   /orders/{id}/details:
@@ -190,13 +284,13 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Order details with medication list
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderDetails'
-        '404':
+                $ref: "#/components/schemas/OrderDetails"
+        "404":
           description: Order not found
 
 components:
@@ -309,17 +403,17 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Item'
+            $ref: "#/components/schemas/Item"
 
     OrderDetails:
       allOf:
-        - $ref: '#/components/schemas/Order'
+        - $ref: "#/components/schemas/Order"
         - type: object
           properties:
             items:
               type: array
               items:
-                $ref: '#/components/schemas/OrderMedication'
+                $ref: "#/components/schemas/OrderMedication"
 
     OrderMedication:
       type: object
