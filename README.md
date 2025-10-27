@@ -64,8 +64,6 @@ InversifyJS — Dependency Injection
 
 PostgreSQL — Relational Database
 
-Redis — Caching & Job Queue
-
 Cloudinary — Image Storage
 
 Swagger — API Documentation
