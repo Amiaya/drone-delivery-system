@@ -30,24 +30,28 @@ Before running the project, ensure you have the following installed:
 
 ### Clone the Repository
 
-git clone https://github.com/Amiaya/drone-delivery-system.git
-cd drone-delivery-system
+- git clone https://github.com/Amiaya/drone-delivery-system.git
+- cd drone-delivery-system
 
 ### Install Dependencies
 
-yarn
+- yarn
 
 ### 🏭 Build
 
-yarn build
+- yarn build
 
 ### 🧹 Testing
 
-yarn test
+- yarn test
+
+---
 
 ### 📚 API Documentation
 
-http://localhost:<PORT>/docs
+- http://localhost:<PORT>/docs
+
+---
 
 ### 🧠 Tech Stack
 
