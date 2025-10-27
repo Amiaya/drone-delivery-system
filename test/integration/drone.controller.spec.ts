@@ -3,7 +3,7 @@ import "../../src/http/controllers/drones/drone.controller";
 
 import { Drone, DroneRepository } from "@app/drones";
 import Environment, { EnvConfig, envSchema, setupEnv } from "@app/internal/env";
-import { Logger, defaultSerializers } from "@risemaxi/octonet";
+import { Order, OrderRepository } from "@app/orders";
 import chai, { expect } from "chai";
 import { getError, getSuccess, repeat } from "../helper";
 
@@ -13,7 +13,9 @@ import { Application } from "express";
 import { Container } from "inversify";
 import INTERNAL_TYPES from "@app/internal/types";
 import { Knex } from "knex";
-import { Order } from "orders/order.model";
+import Logger from "bunyan";
+import { MedicationRepository } from "@app/medications";
+import { OrderMedicationRepository } from "@app/order-medications";
 import { StatusCodes } from "http-status-codes";
 import chaiAsPromised from "chai-as-promised";
 import { createDrone } from "../helpers/drone";
@@ -39,8 +41,7 @@ beforeAll(async () => {
   const environment = new Environment(envvars);
   env = environment.env();
   const logger = new Logger({
-    name: env.app_name,
-    serializers: defaultSerializers()
+    name: env.app_name
   });
   container = new Container();
 
@@ -53,6 +54,15 @@ beforeAll(async () => {
   container
     .bind<DroneRepository>(APP_TYPES.DroneRepository)
     .to(DroneRepository);
+  container
+    .bind<OrderRepository>(APP_TYPES.OrderRepository)
+    .to(OrderRepository);
+  container
+    .bind<MedicationRepository>(APP_TYPES.MedicationRepository)
+    .to(MedicationRepository);
+  container
+    .bind<OrderMedicationRepository>(APP_TYPES.OrderMedicationRepository)
+    .to(OrderMedicationRepository);
 
   app = new App(container, logger, env).server.build();
 });
@@ -211,7 +221,7 @@ describe("DroneController#makeReady", () => {
 });
 
 describe("DroneController#getDetails", () => {
-  it.only("should fetch drone items if the drone is loaded", async () => {
+  it("should fetch drone items if the drone is loaded", async () => {
     const drone = await createDrone(pg, {
       state: "loaded",
       battery_capacity: 100,
@@ -227,7 +237,8 @@ describe("DroneController#getDetails", () => {
     });
 
     const order = await createOrder(pg, {
-      drone_id: drone.id
+      drone_id: drone.id,
+      status: "pending"
     });
 
     await repeat(2, async i => {

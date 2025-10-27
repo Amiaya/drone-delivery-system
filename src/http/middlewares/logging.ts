@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-import { Logger } from "@risemaxi/octonet";
+import Logger from "bunyan";
 
 /*
  * Captures and stores the body of the response in `Request.locals.body` whenever
@@ -26,7 +26,7 @@ export function captureBody(_req: Request, res: Response, next: NextFunction) {
  */
 export function logRequest(logger: Logger) {
   return function (req: Request, _res: Response, next: NextFunction) {
-    logger.log(req);
+    logger.info(req);
     next();
   };
 }

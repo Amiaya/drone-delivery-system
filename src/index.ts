@@ -4,24 +4,25 @@ import "./http/controllers";
 import "./jobs";
 
 import Environment, { EnvConfig, envSchema, setupEnv } from "./internal/env";
-import { JobRunner, Logger, defaultSerializers } from "@risemaxi/octonet";
 
 import APP_TYPES from "./config/types";
 import { App } from "./app";
 import { Container } from "inversify";
-import { DroneRepository } from "@app/drones";
+import { DroneCronJob } from "./jobs/drone.cron";
+import { DroneRepository } from "./drones";
 import INTERNAL_TYPES from "./internal/types";
 import { Knex } from "knex";
+import Logger from "bunyan";
 import { MedicationRepository } from "@app/medications";
 import { OrderMedicationRepository } from "@app/order-medications";
 import { OrderRepository } from "@app/orders";
-import Redis from "ioredis";
 import { createPostgres } from "./config/postgres";
-import { createRedis } from "./config/redis";
 import { getRouteInfo } from "inversify-express-utils";
 import http from "http";
 import prettyjson from "prettyjson";
 import { seedDrones } from "./config/bootstrap";
+
+("@app/jobs/drone.cronjob");
 
 async function isHealthy(pg: Knex) {
   try {
@@ -37,24 +38,20 @@ const start = async () => {
   const env = environment.env();
 
   const logger = new Logger({
-    name: env.app_name,
-    serializers: defaultSerializers()
+    name: env.app_name
   });
 
   try {
     const container = new Container();
+    container.bind<DroneCronJob>(APP_TYPES.DroneCronJob).to(DroneCronJob);
 
     container.bind<Logger>(INTERNAL_TYPES.Logger).toConstantValue(logger);
     container.bind<EnvConfig>(INTERNAL_TYPES.Env).toConstantValue(env);
 
-    // setup in-memory store
-    const redis = await createRedis(logger, env);
-    container.bind<Redis>(INTERNAL_TYPES.Redis).toConstantValue(redis);
-
     // setup postgres
     const pg = await createPostgres(logger, env);
     container.bind<Knex>(INTERNAL_TYPES.KnexDB).toConstantValue(pg);
-    logger.log("successfully connected to postgres and has run migration");
+    logger.info("successfully connected to postgres and has run migration");
 
     // setup app bindings
     container
@@ -70,9 +67,10 @@ const start = async () => {
       .bind<OrderMedicationRepository>(APP_TYPES.OrderMedicationRepository)
       .to(OrderMedicationRepository);
 
-    // create an instance of job runner
-    const runner = new JobRunner(container);
-    await runner.start(redis, logger);
+    const cronJobs = container.get<DroneCronJob>(APP_TYPES.DroneCronJob);
+
+    cronJobs.start(); // start cron jobs
+    logger.info("🚀 Drone Delivery System started!");
 
     const app = new App(container, logger, env, () => isHealthy(pg));
 
@@ -82,8 +80,8 @@ const start = async () => {
 
     httpServer.listen(env.port);
     httpServer.on("listening", async () => {
-      logger.log(`${env.app_name} listening on ${env.port}`);
-      logger.log(
+      logger.info(`${env.app_name} listening on ${env.port}`);
+      logger.info(
         `📘 Swagger Docs available at http://localhost:${env.port}/docs`
       );
       await seedDrones(container);
@@ -97,7 +95,7 @@ const start = async () => {
     });
 
     process.on("SIGTERM", async () => {
-      logger.log("exiting aplication...");
+      logger.info("exiting aplication...");
 
       httpServer.close(() => {
         process.exit(0);
